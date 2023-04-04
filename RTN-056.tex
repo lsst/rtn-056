@@ -27,13 +27,15 @@ Lina Giraldo, Jerónimo Calderon, Andrés A. Plazas Malagón, Craig Lage
 % \setDocCurator{The Curator of this Document}
 
 \setDocAbstract{%
-The RECA internship program allows Colombian students to get better research skills in Astronomy, Astrophysics, and Cosmology. For three months, we developed our work in this internship program, and its main objective was to study the photon transfer curves (PTC) of the Vera C. Rubin Observatory, mainly gain, and to make comparisons with the gain obtained through pairs of flats. 
+The RECA internship program provides Colombian students with an opportunity to enhance their research skills in Astronomy, Astrophysics, and Cosmology. During this three-month program, our main objective was to study the Photon Transfer Curves (PTC) of the Vera C. Rubin Observatory, specifically the gain, and to compare it with the gain obtained through pairs of flats.
     
-    We used run 13144 to construct the PTCs and 13186 to analyze the crosstalk. We use \textit{DM stack}, which is the software in development for this observatory, and it makes all the reductions for the construction of the PTCs. Also, we implement simulations to reproduce the observed effects.   
-    
-    We initially found a 5 \% difference between the gain by PTC and pairs of flats in a range of flows between 5000 and 10000 ADU. Simulations showed that this difference was a product of the handling of the statistics and the erroneous assumption that the distribution following the Lupton equation is Gaussian. By vendor, we found an error interval for this flow region, for E2V of ($1.8 \pm 0.7$, $4.1 \pm 0.9$) \% and for ITL of ($0.85 \pm 0.7$, $2.2 \pm 0.9$) \%. Also, from the PTC we found the average Full Well Capacity of LSSTCam is $130000 \pm 10000$ e$^-$.
-    
-    We obtained a list of segments where we found differences with the results obtained by SLAC National Acceleration Laboratory in PTC parameters, low saturation level, or other defects. We detected and corrected the effect of statistics in the gain calculation using pairs of flats. Then, we proposed a code change for it, which was implemented in \textit{DM stack}. In addition, we do not recommend correcting for crosstalk since it does not significantly affect the parameters and does not change the shape of the PTC; the opposite is true for the nonlinearity correction.
+We used run 13144 to construct the PTCs and 13186 to analyze the crosstalk. We employed \textit{DM stack}, a software under development for this observatory, which performs all the necessary reductions for the construction of the PTCs. We also used simulations to replicate the observed effects.
+
+Initially, we found a 5\% difference between the gain calculated by PTC and pairs of flats for a flow range between 5000 and 10000 ADU. Simulations showed that this difference was due to the handling of statistics and the assumption that the distribution following the Lupton equation is Gaussian. We found an error interval for this flow region based on the vendor, with ($1.8 \pm 0.7$, $4.1 \pm 0.9$) \% for E2V and ($0.85 \pm 0.7$, $2.2 \pm 0.9$) \% for ITL. From the PTC, we also obtained the average Full Well Capacity of \textit{LSSTCam} as $130000 \pm 10000$ e$^-$.
+
+We identified a list of segments where we found differences with the results obtained by SLAC National Acceleration Laboratory in PTC parameters, low saturation level, or other defects. We detected and corrected the effect of statistics in the gain calculation using pairs of flats and proposed a code change, which was implemented in \textit{DM stack}. We do not recommend correcting for crosstalk as it does not significantly affect the parameters and does not change the shape of the PTC. However, the opposite is true for the nonlinearity correction.
+
+Overall, the study of PTCs is crucial in understanding the performance of detectors and instruments used in Astronomy. The Vera C. Rubin Observatory is an important facility that will enable researchers to carry out a wide range of studies in this field, making it essential to investigate its gain performance.
 }
 
 % Change history defined here.
