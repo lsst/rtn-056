@@ -1,0 +1,75 @@
+\documentclass[OPS,authoryear,toc]{lsstdoc}
+\input{meta}
+
+% Package imports go here.
+
+% Local commands go here.
+
+%If you want glossaries
+%\input{aglossary.tex}
+%\makeglossaries
+
+\title{Study of the Photon Transfer Curve in the CCD detectors of the Vera C. Rubin Observatory}
+
+% Optional subtitle
+% \setDocSubtitle{A subtitle}
+
+\author{%
+Lina Giraldo
+}
+
+\setDocRef{RTN-056}
+\setDocUpstreamLocation{\url{https://github.com/lsst/rtn-056}}
+
+\date{\vcsDate}
+
+% Optional: name of the document's curator
+% \setDocCurator{The Curator of this Document}
+
+\setDocAbstract{%
+The RECA internship program allows Colombian students to get better research skills in Astronomy, Astrophysics, and Cosmology. For three months, we developed our work in this internship program, and its main objective was to study the photon transfer curves (PTC) of the Vera C. Rubin Observatory, mainly gain, and to make comparisons with the gain obtained through pairs of flats. 
+    
+    We used run 13144 to construct the PTCs and 13186 to analyze the crosstalk. We use \textit{DM stack}, which is the software in development for this observatory, and it makes all the reductions for the construction of the PTCs. Also, we implement simulations to reproduce the observed effects.   
+    
+    We initially found a 5 \% difference between the gain by PTC and pairs of flats in a range of flows between 5000 and 10000 ADU. Simulations showed that this difference was a product of the handling of the statistics and the erroneous assumption that the distribution following the Lupton equation is Gaussian. By vendor, we found an error interval for this flow region, for E2V of ($1.8 \pm 0.7$, $4.1 \pm 0.9$) \% and for ITL of ($0.85 \pm 0.7$, $2.2 \pm 0.9$) \%. Also, from the PTC we found the average Full Well Capacity of LSSTCam is $130000 \pm 10000$ e$^-$.
+    
+    We obtained a list of segments where we found differences with the results obtained by SLAC National Acceleration Laboratory in PTC parameters, low saturation level, or other defects. We detected and corrected the effect of statistics in the gain calculation using pairs of flats. Then, we proposed a code change for it, which was implemented in \textit{DM stack}. In addition, we do not recommend correcting for crosstalk since it does not significantly affect the parameters and does not change the shape of the PTC; the opposite is true for the nonlinearity correction.
+}
+
+% Change history defined here.
+% Order: oldest first.
+% Fields: VERSION, DATE, DESCRIPTION, OWNER NAME.
+% See LPM-51 for version number policy.
+\setDocChangeRecord{%
+  \addtohist{1}{YYYY-MM-DD}{Unreleased.}{Lina Giraldo}
+}
+
+
+\begin{document}
+
+% Create the title page.
+\maketitle
+% Frequently for a technote we do not want a title page  uncomment this to remove the title page and changelog.
+% use \mkshorttitle to remove the extra pages
+
+% ADD CONTENT HERE
+% You can also use the \input command to include several content files.
+
+\appendix
+% Include all the relevant bib files.
+% https://lsst-texmf.lsst.io/lsstdoc.html#bibliographies
+\section{References} \label{sec:bib}
+\renewcommand{\refname}{} % Suppress default Bibliography section
+\bibliography{local,lsst,lsst-dm,refs_ads,refs,books}
+
+% Make sure lsst-texmf/bin/generateAcronyms.py is in your path
+\section{Acronyms} \label{sec:acronyms}
+\input{acronyms.tex}
+% If you want glossary uncomment below -- comment out the two lines above
+%\printglossaries
+
+
+
+
+
+\end{document}
