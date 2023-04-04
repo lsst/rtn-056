@@ -2,7 +2,20 @@
 \input{meta}
 
 % Package imports go here.
+\usepackage{array}
+\usepackage[natbibapa]{apacite}
+\usepackage{blindtext}
+\usepackage{graphicx, color}
+\usepackage{subcaption} %Para subfiguras
+\usepackage{float}
+\usepackage{lscape}
+\usepackage{amsmath}
+\usepackage[export]{adjustbox}
+\usepackage{blindtext}
 
+\providecommand{\keywords}[1]{\textbf{\textit{Keywords---}} #1}
+
+\usepackage[unicode]{hyperref}
 % Local commands go here.
 
 %If you want glossaries
@@ -54,13 +67,19 @@ The RECA internship program allows Colombian students to get better research ski
 
 % ADD CONTENT HERE
 % You can also use the \input command to include several content files.
+\input{Introduction}
+\input{Data}
+\input{Methods}
+\input{Results}
+\input{Conclusions}
+\input{Acknowledgments}
 
 \appendix
 % Include all the relevant bib files.
 % https://lsst-texmf.lsst.io/lsstdoc.html#bibliographies
 \section{References} \label{sec:bib}
 \renewcommand{\refname}{} % Suppress default Bibliography section
-\bibliography{local,lsst,lsst-dm,refs_ads,refs,books}
+\bibliography{bib,lsst,lsst-dm,refs_ads,refs,books}
 
 % Make sure lsst-texmf/bin/generateAcronyms.py is in your path
 \section{Acronyms} \label{sec:acronyms}
