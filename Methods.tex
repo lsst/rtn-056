@@ -9,6 +9,6 @@ Professor Craig Lage generated supercalibrations for the entire focal plane, whi
 The code used to generate the calibration images via \textit{DM stack} can be found at \href{https://github.com/lsst/cp_pipe}{https://github.com/lsst/cp\_pipe}. This code generates the data for the construction of the PTC and calculates the gain for each CCD segment as its FWC. Additionally, it calculates the gain using another method, which was analyzed in Section \ref{subsec: method_gainflat} to determine the differences between it and the PTC method. The alternative method involves using two pairs of flats for gain estimation. We utilized two versions of the \textit{DM stack} code\footnote{The DM stack software is developed for the LSST and is publicly available on GitHub at \href{https://github.com/lsst/}{https://github.com/lsst/}} for the entire focal plane:
 
 \begin{itemize}
-    \item w_2022_27: Initial version we started working with.
-    \item w_20222_32: Version that includes one of our main results on obtaining the gain with pairs of flats (see the \href{https://jira.lsstcorp.org/browse/DM-35790}{DM-35790} ticket in Jira).
+    \item w\_2022\_27: Initial version we started working with.
+    \item w\_20222\_32: Version that includes one of our main results on obtaining the gain with pairs of flats (see the \href{https://jira.lsstcorp.org/browse/DM-35790}{DM-35790} ticket in Jira).
 \end{itemize}
