@@ -1,7 +1,7 @@
 \section{Results} \label{sec:results}
 
 
-\subsection{PTC}
+\subsection{Photon Transfer Curve}
 
 As part of this project, a key initial task was to utilize the PTC to determine essential parameters for each CCD segment across the focal plane using the \textit{DM stack}. This has already been done by SLAC National Accelerator Laboratory\footnote{The code used by SLAC is available at \href{https://github.com/lsst-camera-dh/eotest/blob/32c17b0a33b9c099651ed581ee90c1b1101012fb/python/lsst/eotest/sensor/ptcTask.py}{SLAC code}} (referred to as SLAC hereafter) for this particular run (\href{https://srs.slac.stanford.edu/BOT_EO_Reports/13144/}{SLAC heat maps BOT 13144}), and we aim to reproduce their results in this study.
 
@@ -134,3 +134,164 @@ Overall, we observed similar behavior for the turn-off of the sensors between ou
     \end{tabular}
 \end{table}
 \end{landscape}
+
+\subsection{Gain from Flat Pairs}
+Initially, we utilized the PTC method to obtain the gain values. However, this approach can be time-consuming as it requires fitting over a wide range of flux values. Therefore, we explored an alternative method, which we refer to as the \textit{gain by pairs of flats}, that is less time-intensive. The left panel of Figure \ref{fig:Gain_full} displays the gain values for detector 55 in a flux range of $0$ to $\sim 120000$ ADU, including values that exceed the saturation level marked by the vertical lines indicating the PTC-turnoff for each segment. On the right panel, the gain values are slightly further from the saturation level, revealing a bump around $60000$ ADU due to nonlinearity, which will be discussed in Section \ref{subsec:crosstalk_and_linearity}. It is important to note that for the analysis of the gain per pair of flats, we only use data below the PTC-turnoff.
+ 
+\vspace{3mm}
+In this section, we highlight the differences we observed between the gain obtained from the PTC and pairs of flats, explore possible ways to reduce these differences, and discuss what can be expected from this alternative method in comparison to the first one.
+
+ \begin{figure}[!htb]
+    \centering
+    \includegraphics[width=\textwidth]{Figures/Gain_plot_55.png}
+    \caption{Gain values obtained from pairs of flat exposures for fluxes up to approximately 120000 ADU for detector 55 (R13\_S01). In both panels, the dashed vertical lines indicate the PTC turnoff values for each of the 16 detector segments, while the colored data points represent the gain as a function of the flux values for each segment. The right panel zooms in on the region up to the PTC-turnoff point shown in the left panel.}
+    \label{fig:Gain_full}
+\end{figure}
+
+\vspace{3mm}
+As mentioned in the methodology (sec. \ref{sec:methods}), we used two code versions (w\_2022\_27 and w\_2022\_32), with the main difference and our focus shown in figure \ref{fig:diff_codes}. This figure illustrates how the two code versions handle statistics to compute gain from pairs of flats. The \textit{w\_2022\_27} version (shown in red) assumes a Gaussian distribution and truncates the distribution to reject outliers, while the \textit{w\_2022\_32} version (shown in green) rejects this assumption. Based on our analysis results described in this section, we recommend using the \textit{w\_2022\_32} version, as the distribution of the operation between two flat images, which is used to calculate the gain, does not follow a Gaussian distribution. Truncating the distribution can alter the expected value for the gain.
+
+
+\begin{figure}[!htb]
+    \centering
+    \includegraphics[width=\textwidth]{Figures/Cambio_codigo.png}
+    \caption{Difference between the initial code (w\_2022\_27, shown in red) and current code (w\_2022\_32, shown in green) for calculating the gain from a pair of flat fields.}
+    \label{fig:diff_codes}
+\end{figure}
+
+
+The version \textit{w\_2022\_27} yielded unexpected results, as shown in figure \ref{fig:relative_error_oldcode}, where the relative percentage error between the gain per PTC and flat pair exceeded 5\% at a flux of 5000 ADU. This was observed for both E2V (upper panel) and ITL (lower panel) detectors. To investigate the cause of this high percentage error, simulations were performed using the methodology described in section \ref{subsubsec:method_Simulation_Gain}.
+
+
+\subsubsection{Simulation}
+Based on the previous result of a 5\% relative error between gains at 5000 ADU, we formulated several hypotheses. Firstly, we considered the possibility that the masks in the flat images could be causing the error, such as if the masks of each image are significantly different and the code uses them for calculations. Secondly, we considered the potential overestimation of read noise. Lastly, we investigated other statistical factors that could be contributing to the error.
+
+\vspace{3mm}
+To explore these hypotheses, we conducted simulations using a flat image of a CCD segment and actual segment masks. The use of one mask for both flats, the union of both masks, or different masks for each flat did not account for the observed 5\% error at 5000 ADU, as shown in the top panel of Figure \ref{fig:simulation_masks}. Interestingly, we observed that higher read noise, when using a NONE type correction, resulted in larger discrepancies between the expected and calculated gain (2 $e^-$/ADU). However, subsequent corrections (SIMPLE and FULL), which account for the read noise, accurately calculated the expected gain value. Nevertheless, the bottom panel of the figure, which includes control statistics in addition to the masks, consistently showed a relative percentage error between the gain per PTC and flat pairs above 5\% in all the cases. We further verify this with real data in the next section (\ref{subsubsec:results_gainflats_realdata}).
+
+
+\begin{figure}[!htb]
+     \centering
+     \begin{subfigure}[b]{\textwidth}
+         \centering
+         \includegraphics[width=\textwidth]{Figures/Simulation_masks.png}
+     \end{subfigure}
+     \vspace{3mm}
+     \begin{subfigure}[b]{\textwidth}
+         \centering
+         \includegraphics[width=\textwidth]{Figures/Simulation_masks_stats.png}
+     \end{subfigure}
+        \caption{Simulation results for flat pair gain estimation, shown in the top panel using only masks and in the bottom panel with the addition of control statistics. The average flux value for the simulated flats is approximately $5000$. The left panels display the gain values for three different models, while the right panels show the relative percentage error compared to the expected gain value of 2 $e^-/$ADU. In the left panels, the horizontal black line represents the expected gain value, and the symbols denote various read noise values: blue circles for 2 $e^-/$, orange triangles for 10 $e^-/$, and green squares for 20 $e^-/$. The gain was calculated for three models: NONE, SIMPLE, and FULL, taking these read noise values into account.}
+        \label{fig:simulation_masks}
+\end{figure}
+
+\subsubsection{Contrasting the simulations with real data} \label{subsubsec:results_gainflats_realdata}
+
+We verified the results obtained from the simulations by comparing them with actual data, specifically for detector 55 (R13\_S01) and all its segments, as shown in figures \ref{fig:GainFlats_NOstats} and \ref{fig:GainFlats_stats}. In these figures, the black crosses represent the gain values obtained from the PTC. The first figure confirms that the use of masks without control statistics results in a relative error of no more than 5\% for any segment of the detector. The highest error observed is 2.25\% at an average flux of 5450 ADU, and the same mask was used for all calculations, i.e., the union of the individual masks. On the other hand, the second figure, which incorporates control statistics along with the masks, reveals that handling the statistics introduces significant discrepancies between the gain values obtained from the PTC and the pairs of flats. In fact, the differences can be as high as 9\% in one of the segments at an average flux of 5450 ADU. These results are consistent with the simulations.
+ 
+ 
+\begin{figure}[!htb]
+    \centering
+    \includegraphics[width=\textwidth]{Figures/GainFlats_NOstats_det55.png}
+    \caption{Gain values are shown in the left panel, while the relative percentage error is shown in the right panel, for the 16 segments (amplifiers) of detector 55 (R13\_S01). In the left panel, the black crosses represent the gain values obtained from PTC. The figures in both panels indicate whether the calculation of the gain from flat pairs used masks (triangles) or not (circles), and the colors are associated with the model used to determine the gain: NONE (red), SIMPLE (green), and FULL (yellow). The mask used for calculation was the union of the masks of both flat images per segment, and control statistics were not used.}
+    \label{fig:GainFlats_NOstats}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth]{Figures/GainFlats_stats_det55.png}
+    \caption{See description of the figure \ref{fig:GainFlats_NOstats}. This figure used control statistics.}
+    \label{fig:GainFlats_stats}
+\end{figure}
+
+
+ Next, we generated plots of the distributions for the operation between the flat images using Equation \ref{eq:ratioIm}, which is the argument of the Lupton equation (Equation \ref{eq:Lupton}) and directly related to the gain. The results are shown in Figure \ref{fig:hist_ratioIM} for each segment of the detector, revealing that the shape of this distribution is not Gaussian. As a result, truncating this distribution can lead to a change in the mean value, which no longer coincides with the mean of the original distribution, resulting in a different gain value than expected.
+ 
+\vspace{3mm}
+
+Subsequently, we constructed the relative percentage error figures for the gain without truncating the distribution, as shown by the green curve in Figure \ref{fig:diff_codes}. The resulting plot is shown in Figure \ref{fig:relative_error}, where the embedded image indicates that for a flux of 5000 ADU, the difference between the two gains is now below 5\%, as confirmed by the simulations. Using this result, we estimated a general relationship for the gain, taking into account the distributions of the linear fit parameters, as shown in Figure \ref{fig:histogram_linearfit}. The linear fit was performed between 5000 and 10000 ADU. In the top left panel of this figure, we can see the distribution of slopes by vendor, revealing a clear bimodality, with E2V detectors having a slightly higher slope compared to ITL, with mean values of $(0.00046 \pm 0.00004)$ and $(0.00027 \pm 0.00004)$ \% ADU, respectively. In the bottom panel of this figure, we have the intercept with the $y$-axis (i.e., the percentage error axis between the gains), which shows an overall mean across the detectors with no appreciable distinction by vendor, having a value of $(-0.5 \pm 0.5)$ \%. Thus, the relative percentage error between 5000 and 10000 ADU for each vendor is given by:
+
+\begin{itemize}
+    \item E2V: $Error_{2Gain} = (0.00046 \pm 0.00004) F - (0.5 \pm 0.5)$, where the error interval is ($1.8 \pm 0.7$, $4.1 \pm 0.9$) \%.
+    \item ITL: $Error_{2Gain} = (0.00027 \pm 0.00004) F - (0.5 \pm 0.5)$, where the error interval is ($0.85 \pm 0.7$, $2.2 \pm 0.9$) \%.
+\end{itemize}
+ 
+\begin{figure}[!htb]
+    \centering
+    \includegraphics[width=\textwidth]{Figures/Histogram_ratioIM_det55.png}
+    \caption{Histogram of the distribution for $\frac{(I_1 - I_2)^2}{I_1 + I_2}$ for each segment of detector 55 (R13\_S01). }
+    \label{fig:hist_ratioIM}
+\end{figure}
+
+
+\begin{figure}[!htb]
+     \centering
+     \begin{subfigure}[b]{\textwidth}
+         \centering
+         \includegraphics[width=\textwidth]{Figures/Relative_Error_Gain_Noise_detectorR13_S01.png}
+     \end{subfigure}
+     \vspace{3mm}
+     \begin{subfigure}[b]{\textwidth}
+         \centering
+         \includegraphics[width=\textwidth]{Figures/Relative_Error_Gain_Noise_detectorR20_S02.png}
+     \end{subfigure}
+        \caption{Refer to the description of the figure \ref{fig:relative_error_oldcode}. This plot showcases the improved version of the code (version w\_2022\_32) that no longer utilizes a clipped mean}
+        \label{fig:relative_error}
+\end{figure}
+
+\begin{figure}[!htb]
+     \centering
+     \begin{subfigure}[b]{\textwidth}
+         \centering
+         \includegraphics[width=\textwidth]{Figures/Histogram_slope_corr_new.png}
+     \end{subfigure}
+     \vspace{3mm}
+     \begin{subfigure}[b]{\textwidth}
+         \centering
+         \includegraphics[width=0.7\textwidth]{Figures/Histogram_offset_new.png}
+     \end{subfigure}
+        \caption{Histograms of the slope (top left), Pearson's correlation coefficient (top right), and $y$-axis intercept (offset, bottom panel) for the linear fit performed in the flow region between 5000 and 10000 ADU for the gain. The construction of these histograms utilized the updated code (version w\_2022\_32), and the vendor is indicated by the colors, with E2V in red and ITL in blue. The vertical lines represent the mean value for each case.}
+        \label{fig:histogram_linearfit}
+\end{figure}
+
+
+\subsection{Crosstalk and Nonlinearity Correction} \label{subsec:crosstalk_and_linearity}
+
+As part of our final analyses during this internship, we quantified and assessed whether the crosstalk effect and nonlinearity impact the shape of the PTC and/or the fundamental parameters such as gain, read noise, BF effect, and turnoff coefficient.
+
+\vspace{3mm}
+
+As described in Section \ref{subsec:method_Crosstalk}, we had access to the crosstalk matrices for detector 32 (ITL) and 139 (E2V), which are shown in Figure \ref{fig:crosstalk_matrix}. Applying the methodology of that section, we found that the differences between PTCs with and without crosstalk correction are negligible, as shown in Figure \ref{fig:crosstalk_corr32} and Figure \ref{fig:crosstalk_corr139}. These figures illustrate that the variance differences are consistently below 0.1 ADU when considering the region below saturation. In contrast, the most significant variance in the parameters is approximately $\sim 0.1$\% for read noise and BF effect coefficient, and approximately $\sim 0.07$ \% for gain and turnoff. The most significant differences were found in the ITL detector segments. Based on these findings, we conclude that crosstalk does not have a considerable effect on the parameters, and correcting this effect is unnecessary, as it does not alter the shape of the PTC.
+
+
+\begin{figure}[!htb]
+    \centering
+    \includegraphics[width=\textwidth]{Figures/ptc_crosstalk32.png}
+    \caption{The plot displays the variance difference versus the mean for detector 32 (R10\_S12) from vendor ITL, with the variance difference calculated between the variance values without and with crosstalk correction. Each CCD segment is shown, with vertical lines indicating the PTC-turnoff values. The legends show the parameter differences: $\Delta g$ for gain, $\Delta n$ for read noise, $\Delta a_{00}$ for the BF effect coefficient, and $\Delta to$ for the PTC-turnoff.}
+    \label{fig:crosstalk_corr32}
+\end{figure}
+
+\begin{figure}[!htb]
+    \centering
+    \includegraphics[width=\textwidth]{Figures/ptc_crosstalk139.png}
+    \caption{Refer to the description of the figure \ref{fig:crosstalk_corr32}. This plot is for detector 139 (R32\_S11) for vendor E2V.}
+    \label{fig:crosstalk_corr139}
+\end{figure}
+
+Finally, to verify the impact of the 12-node cubic spline linearizer on the PTC shape, we applied it to the data. The results of correcting only for crosstalk (orange dots), only for nonlinearity (blue diamonds), correcting for both effects (gray triangles), and using uncorrected data (magenta squares) are presented in Figure \ref{fig:varmean_crosstalk}. We observe that the uncorrected data show a bump around 60000 ADU, while the crosstalk-corrected data consistently align with the uncorrected data (also showing the bump), and the data corrected for nonlinearity flatten it. This suggests that making corrections for nonlinearity alone has a more significant impact on the data than making both crosstalk and nonlinearity corrections. Once again, we conclude that crosstalk correction is not necessary as it does not affect the shape or parameters of the PTC.
+
+
+\begin{figure}[!htb]
+     \centering
+     \begin{subfigure}[b]{0.49\textwidth}
+         \centering
+         \includegraphics[width=\textwidth]{Figures/Variance_Mean_vs_Mean32.png}
+     \end{subfigure}
+     \hfill
+     \begin{subfigure}[b]{0.49\textwidth}
+         \centering
+         \includegraphics[width=\textwidth]{Figures/Variance_Mean_vs_Mean139.png}
+     \end{subfigure}
+        \caption{Variance normalized by mean vs. mean for detector 32 (R10\_S12) for vendor ITL (left) and detector 139 (R32\_S11) for vendor E2V (right). Data with no correction for crosstalk and nonlinearity is shown in magenta squares. Data corrected for crosstalk is shown with orange dots, while data corrected for nonlinearity is shown with blue diamonds. Triangles represent data with corrections for both crosstalk and nonlinearity. Vertical lines indicate the location of the turnoff.}
+        \label{fig:varmean_crosstalk}
+\end{figure}
