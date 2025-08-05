@@ -47,14 +47,14 @@ BPS (Batch Processing Service) was utilized to run the two previous versions. De
 
 
 \subsection{Photon Transfer Curve (PTC)}
-The PTCs were generated for the entire LSSTCam focal plane using the \textit{DM stack}\footnote{The PTCs are constructed with the code available in the repository \href{https://github.com/lsst/cp_pipe}{cp\_pipe}}, which allows estimating the gain, read noise, $a_{00}$ (parameter related to the BF effect), and turnoff (associated with the FWC) from a fit to the shape of the PTC. This code implements equations 16 and 20 of the \cite{astier2019shape} article: equation 16 corresponds to the exponential approximation (EXPAPPROXIMATION), which uses only the variance ($C_{00}$); while equation 20 is the full model (FULLCOVARIANCE), and implements the covariance matrix. In this work, we used EXPAPPROXIMATION, which is described by the following equation:
+The PTCs were generated for the entire LSSTCam focal plane using the \textit{DM stack}\footnote{The PTCs are constructed with the code available in the repository \href{https://github.com/lsst/cp_pipe}{cp\_pipe}}, which allows estimating the gain, read noise, $a_{00}$ (parameter related to the BF effect), and turnoff (associated with the FWC) from a fit to the shape of the PTC. This code implements equations 16 and 20 of the \cite{2019A&A...629A..36A} article: equation 16 corresponds to the exponential approximation (EXPAPPROXIMATION), which uses only the variance ($C_{00}$); while equation 20 is the full model (FULLCOVARIANCE), and implements the covariance matrix. In this work, we used EXPAPPROXIMATION, which is described by the following equation:
 
 \begin{equation}
     C_{00} = \frac{1}{2 g^2 a_{00}} [\exp (2 a_{00} \mu g) - 1] + \frac{n_{00}}{g^2}
     \label{eq:Astier16}
 \end{equation}
 
-where $C_{00}$ is the variance, $g$ is the gain, $a_{00}$ is always negative and is related to the B-F effect, $mu$ is the mean, and $n_{00}$ ($el^{2}$) is the noise. According to \cite{astier2019shape}, a negative value of $a_{00}$ leads to the variance of a flat field not growing as fast as the mean does. In the case where there is no BF effect, i.e., each pixel is independent of the other and is described by a Poisson statistic, the mean, gain, and variance are directly related through the equation:
+where $C_{00}$ is the variance, $g$ is the gain, $a_{00}$ is always negative and is related to the B-F effect, $mu$ is the mean, and $n_{00}$ ($el^{2}$) is the noise. According to \cite{2019A&A...629A..36A}, a negative value of $a_{00}$ leads to the variance of a flat field not growing as fast as the mean does. In the case where there is no BF effect, i.e., each pixel is independent of the other and is described by a Poisson statistic, the mean, gain, and variance are directly related through the equation:
 
 \begin{equation}
     V = \frac{\mu}{g}
@@ -69,7 +69,7 @@ where $V$ is the variance of a flat field, $\mu$ is the mean, and $g$ is the gai
 An independent method for calculating a sensor's gain is using flat field pairs with equal exposure times. Since each CCD is composed of 16 segments, each with its amplifier, a gain value is obtained for each segment. For this purpose, LSST has the function \href{https://github.com/lsst/cp_pipe/blob/main/python/lsst/cp/pipe/ptc/cpExtractPtcTask.py#L679}{Gain from flat pairs}, which was analyzed in detail in this work.
 
 \vspace{3mm}
-We aim to quantify the difference between the gain calculated from the fit to the PTC and this independent method using flat field pairs with equal exposure times. For this, we initially calculate the average flux in ADU with each flat pair, the read noise, and the gain. The latter is estimated employing the equation of \cite{lupton2014consequences}:
+We aim to quantify the difference between the gain calculated from the fit to the PTC and this independent method using flat field pairs with equal exposure times. For this, we initially calculate the average flux in ADU with each flat pair, the read noise, and the gain. The latter is estimated employing the equation of \cite{2014JInst...9C4023L}:
 
 \begin{equation}
     \frac{1}{g} = \Big \langle \frac{(I_1 - I_2)^2}{I_1 + I_2} \Big \rangle 
@@ -106,7 +106,7 @@ Subsequently, a linear low-flow fit was performed, which we considered to be bet
     \mbox{Relative\_error}_{LF} [\%] = m F + \mbox{offset}
 \end{equation}
 
-Where $m$ is the slope of the fit, $F$ is the flux, and \textit{offset} is the intercept with the $y$-axis. These parameters are used to quantify the error variation in the specified flow range and the base error between the PTC gain and that calculated with the flats. We generated histograms of these parameters to examine the behavior of the vendor's data and extract general trends. To exclude outliers, i.e., CCD segments with abnormal behavior, we utilized the \textit{sigma\_clip} and \textit{sigma\_clipped\_stats} functions from \cite{price2018astropy}. These functions allowed us to cut the data such that only values within $3 \sigma$ of the median were retained, and we performed this operation iteratively three times to ensure robustness.
+Where $m$ is the slope of the fit, $F$ is the flux, and \textit{offset} is the intercept with the $y$-axis. These parameters are used to quantify the error variation in the specified flow range and the base error between the PTC gain and that calculated with the flats. We generated histograms of these parameters to examine the behavior of the vendor's data and extract general trends. To exclude outliers, i.e., CCD segments with abnormal behavior, we utilized the \textit{sigma\_clip} and \textit{sigma\_clipped\_stats} functions from \cite{2018AJ....156..123A}. These functions allowed us to cut the data such that only values within $3 \sigma$ of the median were retained, and we performed this operation iteratively three times to ensure robustness.
 
 
  \begin{figure}[!htb]
@@ -165,7 +165,7 @@ To better understand and address this issue, further analysis and simulations we
     
     where $\mu$ is the mean, $\sigma$ is the standard deviation, and $N$ is the read-out noise that we assume. Finally, we apply the methodology described in Section \ref{subsec: method_gainflat} for all types of gain correction: NONE, SIMPLE, and FULL, and calculate the relative error using a base gain (chosen as 2.0) to verify if we can replicate the observations in Figure \ref{fig:relative_error_oldcode}, specifically a base error above 5\%.
 
-    \item \textbf{Case 2 - Pixel Masks}: In this step, pixel masks are added to Case 1. The respective mask is extracted from each flat image, where each flat has an average of 5000 ADU counts. This mask filters out suspicious, bad, dead, and saturated pixels. Next, a Poisson distribution is generated with the dimensions of one of the CCD segments for which the masks were extracted, i.e., $size_x = 2002$ and $size_y = 512$, along with its respective Gaussian noise. The generated mask is then applied to each array using the \textit{Numpy} function \citep{harris2020array} \textit{ma.masked\_where}.
+    \item \textbf{Case 2 - Pixel Masks}: In this step, pixel masks are added to Case 1. The respective mask is extracted from each flat image, where each flat has an average of 5000 ADU counts. This mask filters out suspicious, bad, dead, and saturated pixels. Next, a Poisson distribution is generated with the dimensions of one of the CCD segments for which the masks were extracted, i.e., $size_x = 2002$ and $size_y = 512$, along with its respective Gaussian noise. The generated mask is then applied to each array using the \textit{Numpy} function \citep{2020Natur.585..357H} \textit{ma.masked\_where}.
 
     
     \begin{figure}[!htb]
@@ -224,7 +224,7 @@ Subsequently, plots of the ratio of Variance to Mean vs Mean are constructed, no
 
 \subsection{Crosstalk Correction} \label{subsec:method_Crosstalk}
 
-The LSSTCam's full focal plane can be read out in 2 seconds, and the combination of high-speed, high-resistivity silicon components and close spacing between each channel makes it more susceptible to electronic crosstalk compared to other mosaic cameras \citep{o2015crosstalk}.
+The LSSTCam's full focal plane can be read out in 2 seconds, and the combination of high-speed, high-resistivity silicon components and close spacing between each channel makes it more susceptible to electronic crosstalk compared to other mosaic cameras \citep{2015JInst..10C5010O}.
 
 \vspace{3mm}
 
@@ -235,7 +235,7 @@ The LSSTCam's full focal plane can be read out in 2 seconds, and the combination
     \label{fig:crosstalk}
 \end{figure}
 
-Electronic crosstalk occurs in CCDs with multiple channels that are read simultaneously and coupled, resulting in ghost images generated in adjacent segments when a bright source is detected in a channel due to this coupling \citep{snyder2020laboratory}. This effect is illustrated in Figure \ref{fig:crosstalk}, where ghost signals are observed in the lateral segments of the detector. Figure \ref{fig:crosstalk_matrix} shows a heat map on the left for ITL detector 32 and on the right for ITL detector 139, depicting the crosstalk coefficients in blue colors, with the observation that the crosstalk pattern differs per vendor. These coefficients are incorporated into a configuration file in the LSST software to regenerate the PTC with this correction.
+Electronic crosstalk occurs in CCDs with multiple channels that are read simultaneously and coupled, resulting in ghost images generated in adjacent segments when a bright source is detected in a channel due to this coupling \citep{2020SPIE11454E..39S}. This effect is illustrated in Figure \ref{fig:crosstalk}, where ghost signals are observed in the lateral segments of the detector. Figure \ref{fig:crosstalk_matrix} shows a heat map on the left for ITL detector 32 and on the right for ITL detector 139, depicting the crosstalk coefficients in blue colors, with the observation that the crosstalk pattern differs per vendor. These coefficients are incorporated into a configuration file in the LSST software to regenerate the PTC with this correction.
 
 Finally, similar to the approach in Section \ref{subsec:method_Linearity}, a comparison was made to check whether the parameters and/or the shape of the PTC changed compared to the version without correction for crosstalk.
 
