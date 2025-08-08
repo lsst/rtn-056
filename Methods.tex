@@ -3,7 +3,7 @@
 The images used in this study underwent standard reduction techniques, including overscan, bias, dark, and defects reduction. Defects reduction involves creating maps that indicate regions with both bright and dark defects, such as dead pixels. These reductions serve as the starting state for the PTC study. Subsequently, other corrections, such as linearity and crosstalk, are applied to analyze their effects on the main parameters of the camera.
 
 \vspace{3mm}
-Professor Craig Lage generated supercalibrations for the entire focal plane, which are stored in his personal collection at \textit{u/cslage/calib/13144/calib.20220103}. The images shown in Figures \ref{fig:superbias} and \ref{fig:superdark} are superbias and superdarks, respectively, generated as part of the learning process for producing the calibration images using the LSST's software called \textit{DM stack}.
+Professor Craig Lage generated supercalibrations for the entire focal plane, which are stored in his personal collection at \textit{u/cslage/calib/13144/calib.20220103}. The images shown in Figures \ref{fig:superbias} and \ref{fig:superdark} are superbias and superdarks, respectively, generated as part of the learning process for producing the calibration images using the LSST's software called \textit{DM stack} \citedsp{PSTN-019}.
 
 \vspace{3mm}
 The code used to generate the calibration images via \textit{DM stack} can be found at \\ \href{https://github.com/lsst/cp_pipe}{https://github.com/lsst/cp\_pipe}. This code generates the data for the construction of the PTC and calculates the gain for each CCD segment as its FWC. Additionally, it calculates the gain using another method, which was analyzed in Section \ref{subsec:method_gainflat} to determine the differences between it and the PTC method. The alternative method involves using two pairs of flats for gain estimation. We utilized two versions of the \textit{DM stack} code\footnote{The DM stack software is developed for the LSST and is publicly available on GitHub at \href{https://github.com/lsst/}{https://github.com/lsst/}} for the entire focal plane:
@@ -72,7 +72,7 @@ An independent method for calculating a sensor's gain is using flat field pairs 
 We aim to quantify the difference between the gain calculated from the fit to the PTC and this independent method using flat field pairs with equal exposure times. For this, we initially calculate the average flux in ADU with each flat pair, the read noise, and the gain. The latter is estimated employing the equation of \cite{2014JInst...9C4023L}:
 
 \begin{equation}
-    \frac{1}{g} = \Big \langle \frac{(I_1 - I_2)^2}{I_1 + I_2} \Big \rangle 
+    \frac{1}{g} = \Big \langle \frac{(I_1 - I_2)^2}{I_1 + I_2} \Big \rangle
     \label{eq:Lupton}
 \end{equation}
 
@@ -96,7 +96,7 @@ g = \begin{cases}
 where $K$ is equal to Equation \ref{eq:Lupton}. In the SIMPLE case, $g = 1/K$, while in the FULL case, the quadratic equation is solved, and the result is taken to have physical meaning. Once we have the gains calculated from pairs of flats for flows between 0 and $\sim 10000$ ADU, we calculate the relative percentage error with the gain obtained from the fit to the PTC using Equation \ref{eq:sol_gain_corrected} with the FULL type correction:
 
 \begin{equation}
-    \mbox{Relative\_error} [\%] = \frac{|gain_{PTC} - gain_{flats}|}{gain_{PTC}} \times 100 \% 
+    \mbox{Relative\_error} [\%] = \frac{|gain_{PTC} - gain_{flats}|}{gain_{PTC}} \times 100 \%
     \label{eq:error_relativo_gain}
 \end{equation}
 
@@ -141,7 +141,7 @@ The methodology outlined in Section \ref{subsec:method_gainflat} and the utiliza
 Various factors, including potential overestimation of the read-out noise, the influence of masks used in the images, or assumptions about the distribution for the operations between flat images as given by Equation \ref{eq:ratioIm}, could contribute to the observed behavior. The \textit{w\_2022\_27} version of the \textit{DM stack} assumes that Equation \ref{eq:ratioIm} follows a Gaussian distribution.
 
 \begin{equation}
-      \frac{(I_1 - I_2)^2}{I_1 + I_2} 
+      \frac{(I_1 - I_2)^2}{I_1 + I_2}
       \label{eq:ratioIm}
 \end{equation}
 
@@ -150,24 +150,24 @@ To better understand and address this issue, further analysis and simulations we
 
 \begin{itemize}
     \item \textbf{Case 1 - Noise Overestimation}: Two data sets were constructed following a Poisson distribution for the flow, with an expected value ranging from 5000 to 10000 ADU. In our case, we chose 5000 ADU as the expected value. The Poisson distribution is given by:
- 
+
     \begin{equation}
         f(k;\lambda) = \frac{\lambda^k e^{-\lambda}}{k!} \implies f(k;5000) = \frac{5000^k e^{-5000}}{k!}
     \end{equation}
     \label{eq:dist_Poisson}
 
     where $\lambda$ is the expected value and $k$ is the number of events. To this data, we added Gaussian noise with a mean of zero and a dispersion value that we assume as the read-out noise, given by:
-    
+
     \begin{equation}
         p(x) = \frac{1}{\sqrt{2 \pi \sigma^2}} \exp \Big(-\frac{(x - \mu)^2}{2\sigma^2} \Big) \implies p(x) = \frac{1}{\sqrt{2 \pi N^2}} \exp \Big(-\frac{x^2}{2N^2} \Big)
         \label{eq:gaussian_noise}
     \end{equation}
-    
+
     where $\mu$ is the mean, $\sigma$ is the standard deviation, and $N$ is the read-out noise that we assume. Finally, we apply the methodology described in Section \ref{subsec:method_gainflat} for all types of gain correction: NONE, SIMPLE, and FULL, and calculate the relative error using a base gain (chosen as 2.0) to verify if we can replicate the observations in Figure \ref{fig:relative_error_oldcode}, specifically a base error above 5\%.
 
     \item \textbf{Case 2 - Pixel Masks}: In this step, pixel masks are added to Case 1. The respective mask is extracted from each flat image, where each flat has an average of 5000 ADU counts. This mask filters out suspicious, bad, dead, and saturated pixels. Next, a Poisson distribution is generated with the dimensions of one of the CCD segments for which the masks were extracted, i.e., $size_x = 2002$ and $size_y = 512$, along with its respective Gaussian noise. The generated mask is then applied to each array using the \textit{Numpy} function \citep{2020Natur.585..357H} \textit{ma.masked\_where}.
 
-    
+
     \begin{figure}[!htb]
         \centering
         \includegraphics[width=0.5\textwidth]{Figures/Truncated_Gaussian.jpg}
@@ -176,14 +176,14 @@ To better understand and address this issue, further analysis and simulations we
     \end{figure}
 
     \textbf{Case 3 - Statistics control}: Building upon Case 2, we incorporate statistics control by assuming that the distribution of equation \ref{eq:ratioIm} follows a Gaussian distribution. Similar to the approach used in section \ref{subsec:method_gainflat}, we truncate the distribution by keeping only the data points that fall within $5.5 \sigma$ of the mean, and we repeat this process for three iterations. When the distribution of equation \ref{eq:ratioIm} is Gaussian, the mean of the symmetrical truncated distribution is the same as the original one, and the mean of non-symmetrical truncated distribution can be calculated as:
-    
+
     \begin{equation}
         \mu = \overline{\mu} - \overline{\sigma} \frac{\phi (0,1; \beta) - \phi (0,1; \alpha)}{\Phi (0,1; \beta) - \Phi (0,1; \alpha)} \; \; \; ; \alpha = \frac{a-\overline{\mu}}{\overline{\sigma}} , \beta = \frac{b -\overline{\mu}}{\overline{\sigma}}
         \label{eq:truncated_dist}
     \end{equation}
 
     where $\alpha$ and $\beta$ are standardized variables, $a$ and $b$ are the cutoff values for the lower and upper tails of the distribution, respectively, $\overline{\mu}$ and $\overline{\sigma}$ are the statistics of the original distribution, $\phi$ represents the normal probability density function (PDF), and $\Phi$ represents the Normal cumulative distribution function (CDF). Figure \ref{fig:truncated_gaussian_dist} illustrates this case for $a=-1$ and $b=+2$. However, when the distribution is symmetrically truncated, i.e., $-a=b$, the numerator of the second term in the above equation becomes zero, and the mean of the truncated and original distribution is simply:
-    
+
     \begin{equation}
         \mu = \overline{\mu}
         \label{eq:truncated_dist_simetric}
